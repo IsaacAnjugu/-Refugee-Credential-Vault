@@ -3,6 +3,7 @@
 (define-constant err-not-found (err u101))
 (define-constant err-unauthorized (err u102))
 (define-constant err-already-exists (err u103))
+(define-constant err-expired (err u104))
 
 (define-non-fungible-token credential-token uint)
 
@@ -31,6 +32,11 @@
 )
 
 (define-data-var last-credential-id uint u0)
+
+(define-map verification-requests
+  { credential-id: uint, verifier: principal }
+  { requested-at: uint, status: (string-ascii 16) }
+)
 
 (define-public (register-issuer (issuer principal))
   (begin
@@ -118,3 +124,43 @@
         (< stacks-block-height (get expires-at permission))
       )) err-unauthorized)
     (ok credential)))
+
+(define-public (request-verification (credential-id uint))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found)))
+    (map-set verification-requests
+      { credential-id: credential-id, verifier: tx-sender }
+      { requested-at: stacks-block-height, status: "pending" }
+    )
+    (ok true)))
+
+(define-public (approve-verification (credential-id uint) (verifier principal))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found)))
+    (asserts! (is-eq tx-sender (get owner credential)) err-unauthorized)
+    (map-set verification-requests
+      { credential-id: credential-id, verifier: verifier }
+      { requested-at: stacks-block-height, status: "approved" }
+    )
+    (ok true)))
+
+(define-read-only (verify-credential (credential-id uint))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found))
+     (verification (map-get? verification-requests { credential-id: credential-id, verifier: tx-sender })))
+    (asserts! (> (get expiry-date credential) stacks-block-height) err-expired)
+    (match verification
+      verified-request
+        (begin
+          (asserts! (is-eq (get status verified-request) "approved") err-unauthorized)
+          (ok {
+            credential-id: credential-id,
+            issuer: (get issuer credential),
+            institution: (get institution credential),
+            credential-type: (get credential-type credential),
+            issue-date: (get issue-date credential),
+            expiry-date: (get expiry-date credential),
+            verified: (get verified credential),
+            issuer-active: (is-authorized-issuer (get issuer credential))
+          }))
+      err-unauthorized)))
