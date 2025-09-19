@@ -38,6 +38,11 @@
   { requested-at: uint, status: (string-ascii 16) }
 )
 
+(define-map owner-credential-count
+  { owner: principal }
+  { count: uint }
+)
+
 (define-public (register-issuer (issuer principal))
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-owner-only)
@@ -86,6 +91,13 @@
       }
     )
     (var-set last-credential-id new-id)
+    (let
+      ((current-count (default-to u0 (get count (map-get? owner-credential-count { owner: recipient })))))
+      (map-set owner-credential-count
+        { owner: recipient }
+        { count: (+ current-count u1) }
+      )
+    )
     (ok new-id)))
 
 (define-public (grant-access
@@ -164,3 +176,6 @@
             issuer-active: (is-authorized-issuer (get issuer credential))
           }))
       err-unauthorized)))
+
+(define-read-only (get-owned-credential-count (owner principal))
+  (default-to u0 (get count (map-get? owner-credential-count { owner: owner }))))
