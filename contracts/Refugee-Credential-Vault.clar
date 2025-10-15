@@ -178,4 +178,20 @@
       err-unauthorized)))
 
 (define-read-only (get-owned-credential-count (owner principal))
-  (default-to u0 (get count (map-get? owner-credential-count { owner: owner }))))
+   (default-to u0 (get count (map-get? owner-credential-count { owner: owner }))))
+
+(define-public (revoke-credential (credential-id uint))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found)))
+    (asserts! (is-eq tx-sender (get issuer credential)) err-unauthorized)
+    (try! (nft-burn? credential-token credential-id (get owner credential)))
+    (map-delete credentials {credential-id: credential-id})
+    (map-delete access-permissions {credential-id: credential-id, viewer: (get owner credential)})
+    (let
+      ((current-count (default-to u0 (get count (map-get? owner-credential-count { owner: (get owner credential) })))))
+      (map-set owner-credential-count
+        { owner: (get owner credential) }
+        { count: (if (> current-count u0) (- current-count u1) u0) }
+      )
+    )
+    (ok true)))

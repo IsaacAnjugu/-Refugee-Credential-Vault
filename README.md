@@ -9,6 +9,7 @@ A decentralized system for storing and verifying academic and professional crede
 - Permissioned access control
 - Secure credential sharing
 - Immutable credential records
+- Credential revocation mechanism
 
 ## 📝 Contract Functions
 
@@ -22,6 +23,7 @@ A decentralized system for storing and verifying academic and professional crede
 ### For Credential Owners
 - `grant-access`: Share credentials with specified viewers
 - `revoke-access`: Remove viewing permissions
+- `revoke-credential`: Permanently remove a credential (issuer only)
 
 ### Read-Only Functions
 - `get-credential`: View credential details (if authorized)
