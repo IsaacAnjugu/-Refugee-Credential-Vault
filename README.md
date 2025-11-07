@@ -23,6 +23,7 @@ A decentralized system for storing and verifying academic and professional crede
 ### For Credential Owners
 - `grant-access`: Share credentials with specified viewers
 - `revoke-access`: Remove viewing permissions
+- `transfer-credential`: Transfer credential ownership to another principal
 - `revoke-credential`: Permanently remove a credential (issuer only)
 
 ### Read-Only Functions
@@ -45,6 +46,10 @@ All credentials are stored as NFTs with strict access controls. Only verified is
 - Professional qualifications
 - Training certifications
 - Work experience verification
+
+## 🔄 Credential Transfer
+
+Credential owners can now seamlessly transfer their credentials to new owners, enabling scenarios like inheritance, organizational changes, or credential portability across different systems. This feature maintains the integrity of the credential while allowing flexible ownership transitions.
 ```
 
 Git commit message:

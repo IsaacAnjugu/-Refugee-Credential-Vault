@@ -195,3 +195,28 @@
       )
     )
     (ok true)))
+
+(define-public (transfer-credential (credential-id uint) (new-owner principal))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found)))
+    (asserts! (is-eq tx-sender (get owner credential)) err-unauthorized)
+    (try! (nft-transfer? credential-token credential-id tx-sender new-owner))
+    (map-set credentials
+      { credential-id: credential-id }
+      (merge credential { owner: new-owner })
+    )
+    (let
+      ((old-count (default-to u0 (get count (map-get? owner-credential-count { owner: tx-sender })))))
+      (map-set owner-credential-count
+        { owner: tx-sender }
+        { count: (if (> old-count u0) (- old-count u1) u0) }
+      )
+    )
+    (let
+      ((new-count (default-to u0 (get count (map-get? owner-credential-count { owner: new-owner })))))
+      (map-set owner-credential-count
+        { owner: new-owner }
+        { count: (+ new-count u1) }
+      )
+    )
+    (ok true)))
