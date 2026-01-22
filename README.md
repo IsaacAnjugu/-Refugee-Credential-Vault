@@ -86,3 +86,7 @@ Next Steps:
 - Add metadata standards
 - Enhance permission system
 
+## 🔄 Credential Renewal
+
+Issuers can now renew credentials by updating their expiry dates, ensuring long-term validity without reminting. This feature streamlines credential lifecycle management for educational and professional qualifications, providing flexibility for ongoing verification needs and reducing administrative overhead for institutions.
+

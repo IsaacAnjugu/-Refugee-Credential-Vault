@@ -220,3 +220,13 @@
       )
     )
     (ok true)))
+
+(define-public (renew-credential (credential-id uint) (new-expiry-date uint))
+  (let
+    ((credential (unwrap! (map-get? credentials {credential-id: credential-id}) err-not-found)))
+    (asserts! (is-eq tx-sender (get issuer credential)) err-unauthorized)
+    (map-set credentials
+      { credential-id: credential-id }
+      (merge credential { expiry-date: new-expiry-date })
+    )
+    (ok true)))
